@@ -10,8 +10,8 @@ const methodOverride = require("method-override");
 
 // ⭐ CLOUDINARY
 const multer = require("multer");
-const { storage } = require("./cloudConfig");
-const upload = multer({ storage });
+
+const upload = multer({ dest: "uploads/" });
 
 // ⭐ AUTH + FLASH
 const session = require("express-session");
@@ -19,30 +19,34 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+// ✅ ENV VARIABLES
+const MONGO_URL = process.env.MONGO_URL;
+const SECRET = process.env.SESSION_SECRET;
 
+// ================= DB =================
 async function main() {
   await mongoose.connect(MONGO_URL);
   console.log("connected to DB");
 }
 main();
 
+// ================= VIEW =================
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
-// ⭐ SESSION
+// ================= SESSION =================
 app.use(session({
-  secret: "mysupersecretcode",
+  secret: SECRET,
   resave: false,
   saveUninitialized: false,
 }));
 
 app.use(flash());
 
-// ⭐ PASSPORT
+// ================= PASSPORT =================
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -50,7 +54,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// ⭐ GLOBAL VARIABLES
+// ================= GLOBAL =================
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
@@ -58,9 +62,7 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // ================= MIDDLEWARE =================
-
 function isLoggedIn(req, res, next) {
   if (!req.isAuthenticated()) {
     req.flash("error", "You must be logged in!");
@@ -85,17 +87,14 @@ async function isReviewAuthor(req, res, next) {
   next();
 }
 
+// ================= ROUTES =================
 
-// ================= ROOT =================
-
+// ROOT
 app.get("/", (req, res) => {
   res.redirect("/listings");
 });
 
-
-// ================= LISTING ROUTES =================
-
-// ⭐ INDEX + SEARCH + FILTER (MERGED)
+// INDEX + SEARCH
 app.get("/listings", async (req, res) => {
   let { search, category } = req.query;
 
@@ -114,16 +113,15 @@ app.get("/listings", async (req, res) => {
   }
 
   const allListings = await Listing.find(query);
-
   res.render("listings/index.ejs", { allListings });
 });
 
-// New
+// NEW
 app.get("/listings/new", isLoggedIn, (req, res) => {
   res.render("listings/new.ejs");
 });
 
-// Show
+// SHOW
 app.get("/listings/:id", async (req, res) => {
   let listing = await Listing.findById(req.params.id)
     .populate("reviews")
@@ -132,13 +130,12 @@ app.get("/listings/:id", async (req, res) => {
   res.render("listings/show.ejs", { listing });
 });
 
-// Create
+// CREATE
 app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, res) => {
-
   const newListing = new Listing(req.body.listing);
 
   newListing.owner = req.user._id;
-  newListing.image = req.file.path;
+  newListing.image = req.file ? req.file.path : "";
 
   await newListing.save();
 
@@ -146,29 +143,27 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
   res.redirect("/listings");
 });
 
-// Edit
+// EDIT
 app.get("/listings/:id/edit", isLoggedIn, isOwner, async (req, res) => {
   let listing = await Listing.findById(req.params.id);
   res.render("listings/edit.ejs", { listing });
 });
 
-// Update
+// UPDATE
 app.put("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   await Listing.findByIdAndUpdate(req.params.id, req.body.listing);
   req.flash("success", "Listing updated ✏️");
   res.redirect(`/listings/${req.params.id}`);
 });
 
-// Delete
+// DELETE
 app.delete("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   await Listing.findByIdAndDelete(req.params.id);
   req.flash("success", "Listing deleted 🗑️");
   res.redirect("/listings");
 });
 
-
-// ================= REVIEW ROUTES =================
-
+// ================= REVIEWS =================
 app.post("/listings/:id/reviews", isLoggedIn, async (req, res) => {
   let listing = await Listing.findById(req.params.id);
 
@@ -197,15 +192,13 @@ app.delete("/listings/:id/reviews/:reviewId", isLoggedIn, isReviewAuthor, async 
   res.redirect(`/listings/${id}`);
 });
 
+// ================= AUTH =================
 
-// ================= AUTH ROUTES =================
-
-// Signup GET
+// Signup
 app.get("/signup", (req, res) => {
   res.render("users/signup");
 });
 
-// Signup POST
 app.post("/signup", async (req, res, next) => {
   try {
     let { username, email, password } = req.body;
@@ -253,9 +246,9 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
-
 // ================= SERVER =================
+const PORT = process.env.PORT || 8080;
 
-app.listen(8080, () => {
-  console.log("server is listening to port 8080");
+app.listen(PORT, () => {
+  console.log(`server is listening to port ${PORT}`);
 });
