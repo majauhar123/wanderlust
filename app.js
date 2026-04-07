@@ -8,9 +8,8 @@ const User = require("./models/user.js");
 const path = require("path");
 const methodOverride = require("method-override");
 
-// ⭐ CLOUDINARY
+// ⭐ MULTER (Cloudinary removed for stability)
 const multer = require("multer");
-
 const upload = multer({ dest: "uploads/" });
 
 // ⭐ AUTH + FLASH
@@ -19,14 +18,24 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
 
-// ✅ ENV VARIABLES
+// ✅ ENV VARIABLES (SAFE)
 const MONGO_URL = process.env.MONGO_URL;
-const SECRET = process.env.SESSION_SECRET;
+const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
 
 // ================= DB =================
 async function main() {
-  await mongoose.connect(MONGO_URL);
-  console.log("connected to DB");
+  try {
+    if (!MONGO_URL) {
+      throw new Error("MONGO_URL missing ❌");
+    }
+
+    await mongoose.connect(MONGO_URL);
+    console.log("connected to DB ✅");
+
+  } catch (err) {
+    console.log("DB ERROR ❌", err.message);
+    process.exit(1);
+  }
 }
 main();
 
@@ -250,5 +259,5 @@ app.get("/logout", (req, res, next) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(`server is listening to port ${PORT}`);
+  console.log(`server is listening on port ${PORT}`);
 });
