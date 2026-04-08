@@ -11,7 +11,8 @@ const methodOverride = require("method-override");
 
 // ⭐ MULTER
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const { storage } = require("./cloudConfig");
+const upload = multer({ storage });
 
 // ⭐ AUTH + FLASH
 const session = require("express-session");
