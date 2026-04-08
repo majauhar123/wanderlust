@@ -20,8 +20,8 @@ const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
 
 // ================= ENV =================
-const MONGO_URL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/wanderlust";
-const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
+const MONGO_URL = process.env.MONGO_URL;
+const SECRET = process.env.SESSION_SECRET;
 
 // 🔍 DEBUG
 console.log("ENV CHECK 🔍");
