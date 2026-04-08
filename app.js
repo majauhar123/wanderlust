@@ -9,7 +9,7 @@ const User = require("./models/user.js");
 const path = require("path");
 const methodOverride = require("method-override");
 
-// ⭐ MULTER (Cloudinary removed for stability)
+// ⭐ MULTER
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
@@ -19,15 +19,19 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
 
-// ✅ ENV VARIABLES (SAFE)
-const MONGO_URL = process.env.MONGO_URL;
+// ================= ENV =================
+const MONGO_URL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/wanderlust";
 const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
+
+// 🔍 DEBUG
+console.log("ENV CHECK 🔍");
+console.log("MONGO_URL:", MONGO_URL);
 
 // ================= DB =================
 async function main() {
   try {
-    if (!MONGO_URL) {
-      throw new Error("MONGO_URL missing ❌");
+    if (!MONGO_URL.startsWith("mongodb")) {
+      throw new Error("Invalid MONGO_URL ❌");
     }
 
     await mongoose.connect(MONGO_URL);
