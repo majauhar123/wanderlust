@@ -1,7 +1,9 @@
 require("dotenv").config();
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+
 const Listing = require("./models/listing.js");
 const Review = require("./models/review.js");
 const User = require("./models/user.js");
@@ -9,12 +11,12 @@ const User = require("./models/user.js");
 const path = require("path");
 const methodOverride = require("method-override");
 
-// ⭐ MULTER
+// ⭐ MULTER (DO NOT CHANGE)
 const multer = require("multer");
 const { storage } = require("./cloudConfig");
 const upload = multer({ storage });
 
-// ⭐ AUTH + FLASH
+// ⭐ AUTH
 const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -22,16 +24,12 @@ const flash = require("connect-flash");
 
 // ================= ENV =================
 const MONGO_URL = process.env.MONGO_URL;
-const SECRET = process.env.SESSION_SECRET;
-
-// 🔍 DEBUG
-console.log("ENV CHECK 🔍");
-console.log("MONGO_URL:", MONGO_URL);
+const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
 
 // ================= DB =================
 async function main() {
   try {
-    if (!MONGO_URL.startsWith("mongodb")) {
+    if (!MONGO_URL || !MONGO_URL.startsWith("mongodb")) {
       throw new Error("Invalid MONGO_URL ❌");
     }
 
@@ -109,7 +107,7 @@ app.get("/", (req, res) => {
   res.redirect("/listings");
 });
 
-// INDEX + SEARCH
+// INDEX
 app.get("/listings", async (req, res) => {
   let { search, category } = req.query;
 
@@ -145,12 +143,18 @@ app.get("/listings/:id", async (req, res) => {
   res.render("listings/show.ejs", { listing });
 });
 
-// CREATE
+// CREATE ⭐ (IMPORTANT FIX)
 app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, res) => {
   const newListing = new Listing(req.body.listing);
 
   newListing.owner = req.user._id;
-  newListing.image = req.file ? req.file.path : "";
+
+  // 🔥 SAFE IMAGE HANDLING
+  if (req.file) {
+    newListing.image = req.file.path;
+  } else {
+    newListing.image = "";
+  }
 
   await newListing.save();
 
@@ -208,8 +212,6 @@ app.delete("/listings/:id/reviews/:reviewId", isLoggedIn, isReviewAuthor, async 
 });
 
 // ================= AUTH =================
-
-// Signup
 app.get("/signup", (req, res) => {
   res.render("users/signup");
 });
@@ -228,16 +230,10 @@ app.post("/signup", async (req, res, next) => {
 
   } catch (e) {
     console.log(e);
-
-    if (e.name === "UserExistsError") {
-      return res.send("Username already exists ❌");
-    }
-
-    return res.send("Something went wrong");
+    return res.send("Error occurred ❌");
   }
 });
 
-// Login
 app.get("/login", (req, res) => {
   res.render("users/login");
 });
@@ -252,11 +248,10 @@ app.post("/login",
   }
 );
 
-// Logout
 app.get("/logout", (req, res, next) => {
   req.logout(function(err) {
     if (err) return next(err);
-    req.flash("success", "Logged out successfully 👋");
+    req.flash("success", "Logged out 👋");
     res.redirect("/listings");
   });
 });
@@ -265,5 +260,5 @@ app.get("/logout", (req, res, next) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(`server is listening on port ${PORT}`);
+  console.log(`server running on port ${PORT} 🚀`);
 });
