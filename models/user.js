@@ -1,17 +1,24 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// ⭐ IMPORTANT FIX
-const passportLocalMongoose = require("passport-local-mongoose");
+// ✅ FIXED IMPORT (IMPORTANT)
+const passportLocalMongoose = require("passport-local-mongoose").default || require("passport-local-mongoose");
 
 const userSchema = new Schema({
   email: {
     type: String,
     required: true,
   },
+
+  wishlist: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Listing",
+    },
+  ],
 });
 
-// ⭐ FORCE FIX
-userSchema.plugin(passportLocalMongoose.default || passportLocalMongoose);
+// ✅ FIXED PLUGIN
+userSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model("User", userSchema);

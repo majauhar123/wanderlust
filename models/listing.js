@@ -9,33 +9,43 @@ const listingSchema = new Schema({
 
   description: String,
 
-  image: {
-    type: String,
-    default:
-      "https://images.unsplash.com/photo-1625505826533-5c80aca7d157",
-    set: (v) =>
-      v === ""
-        ? "https://images.unsplash.com/photo-1625505826533-5c80aca7d157"
-        : v,
-  },
+  // ⭐ MULTIPLE IMAGES (NEW)
+  images: [
+    {
+      url: String,
+      filename: String,
+    },
+  ],
 
   price: Number,
   location: String,
   country: String,
 
-  // ⭐ OWNER ADD (IMPORTANT)
+  // ⭐ OWNER
   owner: {
     type: Schema.Types.ObjectId,
     ref: "User",
   },
-  
-  category: {
-  type: String,
-  enum: ["Beach", "Mountain", "City", "Farm"],
-  default: "Beach",
-},
 
-  // ⭐ REVIEWS FIX
+  // ⭐ CATEGORY
+  category: {
+    type: String,
+    enum: ["Beach", "Mountain", "City", "Farm"],
+    default: "Beach",
+  },
+
+  // ⭐ MAP
+  geometry: {
+    type: {
+      type: String,
+      enum: ["Point"],
+    },
+    coordinates: {
+      type: [Number],
+    },
+  },
+
+  // ⭐ REVIEWS
   reviews: [
     {
       type: Schema.Types.ObjectId,

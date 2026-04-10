@@ -1,111 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WanderLust</title>
+<head>
+  <meta charset="UTF-8" />
+  <title>WanderLust</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <style>
-      body {
-        background-color: #f8f9fa;
-      }
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-      .card:hover {
-        transform: scale(1.03);
-        transition: 0.3s;
-      }
-    </style>
-  </head>
+  <!-- Marker Cluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
-  <body>
+  <style>
+    body { background: #f8f9fa; }
 
-    <!-- Navbar -->
-    <%- include("../partials/navbar") %>
+    #map {
+      height: 400px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
 
-    <!-- ⭐ FLASH MESSAGE -->
-    <div class="container mt-3">
-      <%- include("../partials/flash") %>
-    </div>
+    .card:hover {
+      transform: scale(1.03);
+      transition: 0.3s;
+      cursor: pointer;
+    }
+  </style>
+</head>
 
-    <div class="container mt-4">
+<body>
 
-      <!-- Heading + Button -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">All Listings</h2>
+<%- include("../partials/navbar") %>
 
-        <a href="/listings/new" class="btn btn-dark">
-          + Create New Listing
-        </a>
-      </div>
+<div class="container mt-3">
+  <%- include("../partials/flash") %>
+</div>
 
-      <!-- ⭐ CATEGORY FILTER -->
-      <div class="mb-4 text-center">
+<div class="container mt-4">
 
-        <a href="/listings" class="btn btn-outline-dark m-1">All</a>
-        <a href="/listings?category=Beach" class="btn btn-primary m-1">🏖 Beach</a>
-        <a href="/listings?category=Mountain" class="btn btn-success m-1">⛰ Mountain</a>
-        <a href="/listings?category=City" class="btn btn-warning m-1">🏙 City</a>
-        <a href="/listings?category=Farm" class="btn btn-info m-1">🌾 Farm</a>
+  <!-- 🔍 SEARCH -->
+  <form method="GET" action="/listings" class="mb-4 d-flex">
+    <input 
+      type="text" 
+      name="search" 
+      class="form-control me-2"
+      placeholder="Search location, country..."
+    />
+    <button class="btn btn-dark">Search</button>
+  </form>
 
-      </div>
+  <!-- MAP -->
+  <h4 class="text-center mb-3">Explore Places 🌍</h4>
+  <div id="map"></div>
 
-      <!-- ⭐ CARDS -->
-      <div class="row">
+  <!-- CARDS -->
+  <div class="row">
 
-        <% if(allListings.length > 0) { %>
+    <% if(allListings.length > 0){ %>
 
-          <% for(let listing of allListings) { %>
+      <% for(let listing of allListings){ %>
 
-            <div class="col-md-4 mb-4">
-              <div class="card shadow-sm h-100 rounded-4 overflow-hidden">
+        <div class="col-md-4 mb-4">
+          <div class="card shadow-sm h-100"
+               onclick="window.location='/listings/<%= listing._id %>'">
 
-                <!-- Image -->
-                <img src="<%= listing.image %>" 
-                     class="card-img-top"
-                     style="height:220px; object-fit:cover;" />
+            <img src="<%= listing.image %>" 
+                 class="card-img-top"
+                 style="height:220px; object-fit:cover;" />
 
-                <div class="card-body">
+            <div class="card-body">
+              <h5 class="fw-bold"><%= listing.title %></h5>
 
-                  <!-- Title -->
-                  <h5 class="card-title fw-bold">
-                    <%= listing.title %>
-                  </h5>
+              <p class="text-muted mb-1">
+                📍 <%= listing.location %>, <%= listing.country %>
+              </p>
 
-                  <!-- Location -->
-                  <p class="text-muted mb-1">
-                    📍 <%= listing.location %>, <%= listing.country %>
-                  </p>
-
-                  <!-- Price -->
-                  <h6 class="text-success fw-bold">
-                    ₹ <%= listing.price.toLocaleString("en-IN") %>
-                  </h6>
-
-                  <!-- Button -->
-                  <a href="/listings/<%= listing._id %>" 
-                     class="btn btn-dark w-100 mt-2">
-                    View Details
-                  </a>
-
-                </div>
-
-              </div>
+              <h6 class="text-success fw-bold">
+                ₹ <%= listing.price.toLocaleString("en-IN") %>
+              </h6>
             </div>
 
-          <% } %>
+          </div>
+        </div>
 
-        <% } else { %>
+      <% } %>
 
-          <h4 class="text-center text-muted">No listings found 😔</h4>
+    <% } else { %>
 
-        <% } %>
+      <h4 class="text-center text-muted">No listings found 😔</h4>
 
-      </div>
+    <% } %>
 
-    </div>
+  </div>
 
-  </body>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Marker Cluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+  const listings = <%- JSON.stringify(allListings) %>;
+
+  const map = L.map('map');
+
+  let bounds = [];
+
+  // ✅ CLUSTER GROUP
+  const markers = L.markerClusterGroup();
+
+  listings.forEach(listing => {
+
+    // 🔒 SAFE CHECK
+    if(listing.geometry && listing.geometry.coordinates){
+
+      const coords = listing.geometry.coordinates;
+
+      const marker = L.marker([coords[1], coords[0]]);
+
+      marker.bindPopup(`
+        <div style="text-align:center;">
+          <b>${listing.title}</b><br>
+          📍 ${listing.location}<br>
+          <a href="/listings/${listing._id}" class="btn btn-sm btn-dark mt-1">View</a>
+        </div>
+      `);
+
+      markers.addLayer(marker);
+      bounds.push([coords[1], coords[0]]);
+    }
+  });
+
+  map.addLayer(markers);
+
+  // ✅ AUTO ZOOM
+  if(bounds.length > 0){
+    map.fitBounds(bounds, { padding: [50, 50] });
+  } else {
+    map.setView([28.6139, 77.2090], 5); // default India
+  }
+
+  // ✅ TILE
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // 📍 USER LOCATION
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(position => {
+
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup("📍 You are here")
+        .openPopup();
+
+    }, () => {
+      console.log("Location access denied");
+    });
+  }
+</script>
+
+</body>
 </html>

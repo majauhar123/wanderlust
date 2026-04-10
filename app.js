@@ -11,7 +11,7 @@ const User = require("./models/user.js");
 const path = require("path");
 const methodOverride = require("method-override");
 
-// ⭐ MULTER (DO NOT CHANGE)
+// ⭐ MULTER (MULTIPLE IMAGE SUPPORT)
 const multer = require("multer");
 const { storage } = require("./cloudConfig");
 const upload = multer({ storage });
@@ -21,6 +21,9 @@ const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
+
+// ⭐ AXIOS (GEOCODING)
+const axios = require("axios");
 
 // ================= ENV =================
 const MONGO_URL = process.env.MONGO_URL;
@@ -143,24 +146,56 @@ app.get("/listings/:id", async (req, res) => {
   res.render("listings/show.ejs", { listing });
 });
 
-// CREATE ⭐ (IMPORTANT FIX)
-app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, res) => {
-  const newListing = new Listing(req.body.listing);
+// CREATE (🔥 MULTIPLE IMAGE + MAP FIX)
+app.post(
+  "/listings",
+  isLoggedIn,
+  upload.array("listing[image]", 5), // ⭐ multiple images
+  async (req, res) => {
+    try {
+      const newListing = new Listing(req.body.listing);
 
-  newListing.owner = req.user._id;
+      newListing.owner = req.user._id;
 
-  // 🔥 SAFE IMAGE HANDLING
-  if (req.file) {
-    newListing.image = req.file.path;
-  } else {
-    newListing.image = "";
+      // ⭐ MULTIPLE IMAGES SAVE
+      newListing.images = req.files.map(f => ({
+        url: f.path,
+        filename: f.filename,
+      }));
+
+      // ⭐ LOCATION → GEO
+      const location = `${req.body.listing.location}, ${req.body.listing.country}`;
+
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${location}`
+      );
+
+      if (response.data.length > 0) {
+        newListing.geometry = {
+          type: "Point",
+          coordinates: [
+            parseFloat(response.data[0].lon),
+            parseFloat(response.data[0].lat),
+          ],
+        };
+      } else {
+        newListing.geometry = {
+          type: "Point",
+          coordinates: [77.2090, 28.6139],
+        };
+      }
+
+      await newListing.save();
+
+      req.flash("success", "Listing created 🎉");
+      res.redirect("/listings");
+
+    } catch (err) {
+      console.log(err);
+      res.send("Error creating listing ❌");
+    }
   }
-
-  await newListing.save();
-
-  req.flash("success", "New listing created 🎉");
-  res.redirect("/listings");
-});
+);
 
 // EDIT
 app.get("/listings/:id/edit", isLoggedIn, isOwner, async (req, res) => {
@@ -180,6 +215,25 @@ app.delete("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   await Listing.findByIdAndDelete(req.params.id);
   req.flash("success", "Listing deleted 🗑️");
   res.redirect("/listings");
+});
+
+// ================= ❤️ WISHLIST =================
+
+// ADD / REMOVE
+app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
+  const user = await User.findById(req.user._id);
+  const listingId = req.params.id;
+
+  if (user.wishlist.includes(listingId)) {
+    user.wishlist.pull(listingId);
+    req.flash("success", "Removed from wishlist ❌");
+  } else {
+    user.wishlist.push(listingId);
+    req.flash("success", "Added to wishlist ❤️");
+  }
+
+  await user.save();
+  res.redirect(`/listings/${listingId}`);
 });
 
 // ================= REVIEWS =================
@@ -254,6 +308,20 @@ app.get("/logout", (req, res, next) => {
     req.flash("success", "Logged out 👋");
     res.redirect("/listings");
   });
+});
+// ================= ❤️ WISHLIST PAGE =================
+app.get("/wishlist", isLoggedIn, async (req, res) => {
+  const user = await User.findById(req.user._id).populate("wishlist");
+  res.render("users/wishlist", { listings: user.wishlist });
+});
+
+// ================= 👤 PROFILE =================
+app.get("/profile", isLoggedIn, async (req, res) => {
+  const user = await User.findById(req.user._id).populate("wishlist");
+
+  const userListings = await Listing.find({ owner: req.user._id });
+
+  res.render("users/profile", { user, userListings });
 });
 
 // ================= SERVER =================
