@@ -11,7 +11,10 @@ const User = require("./models/user.js");
 const path = require("path");
 const methodOverride = require("method-override");
 
-// ⭐ MULTER (MULTIPLE IMAGE SUPPORT)
+// ⭐ STATIC (IMPORTANT FOR RENDER)
+app.use(express.static(path.join(__dirname, "public")));
+
+// ⭐ MULTER
 const multer = require("multer");
 const { storage } = require("./cloudConfig");
 const upload = multer({ storage });
@@ -22,7 +25,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
 
-// ⭐ AXIOS (GEOCODING)
+// ⭐ AXIOS
 const axios = require("axios");
 
 // ================= ENV =================
@@ -32,16 +35,10 @@ const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
 // ================= DB =================
 async function main() {
   try {
-    if (!MONGO_URL || !MONGO_URL.startsWith("mongodb")) {
-      throw new Error("Invalid MONGO_URL ❌");
-    }
-
     await mongoose.connect(MONGO_URL);
     console.log("connected to DB ✅");
-
   } catch (err) {
-    console.log("DB ERROR ❌", err.message);
-    process.exit(1);
+    console.log("DB ERROR ❌", err);
   }
 }
 main();
@@ -81,7 +78,7 @@ app.use((req, res, next) => {
 // ================= MIDDLEWARE =================
 function isLoggedIn(req, res, next) {
   if (!req.isAuthenticated()) {
-    req.flash("error", "You must be logged in!");
+    req.flash("error", "Login required!");
     return res.redirect("/login");
   }
   next();
@@ -90,15 +87,7 @@ function isLoggedIn(req, res, next) {
 async function isOwner(req, res, next) {
   let listing = await Listing.findById(req.params.id);
   if (!listing.owner.equals(req.user._id)) {
-    return res.send("You are not the owner ❌");
-  }
-  next();
-}
-
-async function isReviewAuthor(req, res, next) {
-  let review = await Review.findById(req.params.reviewId);
-  if (!review.author.equals(req.user._id)) {
-    return res.send("Not your review ❌");
+    return res.send("Not owner ❌");
   }
   next();
 }
@@ -110,7 +99,7 @@ app.get("/", (req, res) => {
   res.redirect("/listings");
 });
 
-// INDEX
+// INDEX + SEARCH + FILTER
 app.get("/listings", async (req, res) => {
   let { search, category } = req.query;
 
@@ -146,56 +135,50 @@ app.get("/listings/:id", async (req, res) => {
   res.render("listings/show.ejs", { listing });
 });
 
-// CREATE (🔥 MULTIPLE IMAGE + MAP FIX)
-app.post(
-  "/listings",
-  isLoggedIn,
-  upload.array("listing[image]", 5), // ⭐ multiple images
-  async (req, res) => {
-    try {
-      const newListing = new Listing(req.body.listing);
+// CREATE (MAP + IMAGE)
+app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, res) => {
+  try {
+    const newListing = new Listing(req.body.listing);
 
-      newListing.owner = req.user._id;
+    newListing.owner = req.user._id;
 
-      // ⭐ MULTIPLE IMAGES SAVE
-      newListing.images = req.files.map(f => ({
-        url: f.path,
-        filename: f.filename,
-      }));
-
-      // ⭐ LOCATION → GEO
-      const location = `${req.body.listing.location}, ${req.body.listing.country}`;
-
-      const response = await axios.get(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${location}`
-      );
-
-      if (response.data.length > 0) {
-        newListing.geometry = {
-          type: "Point",
-          coordinates: [
-            parseFloat(response.data[0].lon),
-            parseFloat(response.data[0].lat),
-          ],
-        };
-      } else {
-        newListing.geometry = {
-          type: "Point",
-          coordinates: [77.2090, 28.6139],
-        };
-      }
-
-      await newListing.save();
-
-      req.flash("success", "Listing created 🎉");
-      res.redirect("/listings");
-
-    } catch (err) {
-      console.log(err);
-      res.send("Error creating listing ❌");
+    // ⭐ IMAGE
+    if (req.file) {
+      newListing.image = req.file.path;
     }
+
+    // ⭐ MAP (GEOCODING)
+    const location = `${req.body.listing.location}, ${req.body.listing.country}`;
+
+    const response = await axios.get(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${location}`
+    );
+
+    if (response.data.length > 0) {
+      newListing.geometry = {
+        type: "Point",
+        coordinates: [
+          parseFloat(response.data[0].lon),
+          parseFloat(response.data[0].lat),
+        ],
+      };
+    } else {
+      newListing.geometry = {
+        type: "Point",
+        coordinates: [77.2090, 28.6139],
+      };
+    }
+
+    await newListing.save();
+
+    req.flash("success", "Listing created 🎉");
+    res.redirect("/listings");
+
+  } catch (err) {
+    console.log(err);
+    res.send("Error ❌");
   }
-);
+});
 
 // EDIT
 app.get("/listings/:id/edit", isLoggedIn, isOwner, async (req, res) => {
@@ -206,34 +189,28 @@ app.get("/listings/:id/edit", isLoggedIn, isOwner, async (req, res) => {
 // UPDATE
 app.put("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   await Listing.findByIdAndUpdate(req.params.id, req.body.listing);
-  req.flash("success", "Listing updated ✏️");
   res.redirect(`/listings/${req.params.id}`);
 });
 
 // DELETE
 app.delete("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   await Listing.findByIdAndDelete(req.params.id);
-  req.flash("success", "Listing deleted 🗑️");
   res.redirect("/listings");
 });
 
 // ================= ❤️ WISHLIST =================
-
-// ADD / REMOVE
 app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id);
-  const listingId = req.params.id;
+  const id = req.params.id;
 
-  if (user.wishlist.includes(listingId)) {
-    user.wishlist.pull(listingId);
-    req.flash("success", "Removed from wishlist ❌");
+  if (user.wishlist.includes(id)) {
+    user.wishlist.pull(id);
   } else {
-    user.wishlist.push(listingId);
-    req.flash("success", "Added to wishlist ❤️");
+    user.wishlist.push(id);
   }
 
   await user.save();
-  res.redirect(`/listings/${listingId}`);
+  res.redirect(`/listings/${id}`);
 });
 
 // ================= REVIEWS =================
@@ -248,21 +225,7 @@ app.post("/listings/:id/reviews", isLoggedIn, async (req, res) => {
   listing.reviews.push(review);
   await listing.save();
 
-  req.flash("success", "Review added ⭐");
   res.redirect(`/listings/${req.params.id}`);
-});
-
-app.delete("/listings/:id/reviews/:reviewId", isLoggedIn, isReviewAuthor, async (req, res) => {
-  let { id, reviewId } = req.params;
-
-  await Listing.findByIdAndUpdate(id, {
-    $pull: { reviews: reviewId },
-  });
-
-  await Review.findByIdAndDelete(reviewId);
-
-  req.flash("success", "Review deleted ❌");
-  res.redirect(`/listings/${id}`);
 });
 
 // ================= AUTH =================
@@ -270,22 +233,15 @@ app.get("/signup", (req, res) => {
   res.render("users/signup");
 });
 
-app.post("/signup", async (req, res, next) => {
-  try {
-    let { username, email, password } = req.body;
+app.post("/signup", async (req, res) => {
+  let { username, email, password } = req.body;
 
-    const newUser = new User({ email, username });
-    const registeredUser = await User.register(newUser, password);
+  const newUser = new User({ email, username });
+  const registeredUser = await User.register(newUser, password);
 
-    req.login(registeredUser, (err) => {
-      if (err) return next(err);
-      return res.redirect("/listings");
-    });
-
-  } catch (e) {
-    console.log(e);
-    return res.send("Error occurred ❌");
-  }
+  req.login(registeredUser, () => {
+    res.redirect("/listings");
+  });
 });
 
 app.get("/login", (req, res) => {
@@ -297,31 +253,14 @@ app.post("/login",
     failureRedirect: "/login",
   }),
   (req, res) => {
-    req.flash("success", "Welcome back 🎉");
     res.redirect("/listings");
   }
 );
 
-app.get("/logout", (req, res, next) => {
-  req.logout(function(err) {
-    if (err) return next(err);
-    req.flash("success", "Logged out 👋");
+app.get("/logout", (req, res) => {
+  req.logout(() => {
     res.redirect("/listings");
   });
-});
-// ================= ❤️ WISHLIST PAGE =================
-app.get("/wishlist", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.user._id).populate("wishlist");
-  res.render("users/wishlist", { listings: user.wishlist });
-});
-
-// ================= 👤 PROFILE =================
-app.get("/profile", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.user._id).populate("wishlist");
-
-  const userListings = await Listing.find({ owner: req.user._id });
-
-  res.render("users/profile", { user, userListings });
 });
 
 // ================= SERVER =================
