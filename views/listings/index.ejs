@@ -19,12 +19,13 @@
 
     #map {
       height: 400px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      border-radius: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
 
     .card:hover {
-      transform: scale(1.03);
+      transform: scale(1.05);
       transition: 0.3s;
       cursor: pointer;
     }
@@ -67,9 +68,13 @@
           <div class="card shadow-sm h-100"
                onclick="window.location='/listings/<%= listing._id %>'">
 
-            <!-- ✅ SAFE IMAGE -->
+            <!-- ✅ UNIVERSAL IMAGE FIX -->
             <img 
-              src="<%= listing.image?.url || listing.image || 'https://via.placeholder.com/400' %>" 
+              src="<%= 
+                (listing.image && listing.image.url) 
+                || listing.image 
+                || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e'
+              %>" 
               class="card-img-top"
               style="height:220px; object-fit:cover;" 
             />
@@ -108,7 +113,6 @@
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 <script>
-  // ✅ SAFE JSON (IMPORTANT)
   const listings = <%- JSON.stringify(allListings || []) %>;
 
   const map = L.map('map').setView([28.6139, 77.2090], 5);
@@ -126,13 +130,22 @@
 
       const coords = listing.geometry.coordinates;
 
+      const imageUrl = (listing.image && listing.image.url) || listing.image;
+
       const marker = L.marker([coords[1], coords[0]]);
 
+      // ✅ UPGRADED POPUP
       marker.bindPopup(`
         <div style="text-align:center;">
+          <img 
+            src="${imageUrl}" 
+            style="width:100px; height:60px; object-fit:cover; border-radius:8px;" 
+          />
+          <br>
           <b>${listing.title}</b><br>
           📍 ${listing.location}<br>
-          <a href="/listings/${listing._id}" class="btn btn-sm btn-dark mt-1">View</a>
+          <a href="/listings/${listing._id}" 
+             class="btn btn-sm btn-dark mt-1">View</a>
         </div>
       `);
 
@@ -147,7 +160,7 @@
     map.fitBounds(bounds, { padding: [50, 50] });
   }
 
-  // ✅ MAP FIX (VERY IMPORTANT 🔥)
+  // 🔥 FIX GREY MAP
   setTimeout(() => {
     map.invalidateSize();
   }, 500);
