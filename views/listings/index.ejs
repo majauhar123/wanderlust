@@ -41,7 +41,7 @@
 
 <div class="container mt-4">
 
-  <!-- 🔍 SEARCH -->
+  <!-- SEARCH -->
   <form method="GET" action="/listings" class="mb-4 d-flex">
     <input 
       type="text" 
@@ -67,9 +67,9 @@
           <div class="card shadow-sm h-100"
                onclick="window.location='/listings/<%= listing._id %>'">
 
-            <!-- ✅ FIXED IMAGE -->
+            <!-- ✅ SAFE IMAGE -->
             <img 
-              src="<%= listing.image?.url || 'https://via.placeholder.com/400' %>" 
+              src="<%= listing.image?.url || listing.image || 'https://via.placeholder.com/400' %>" 
               class="card-img-top"
               style="height:220px; object-fit:cover;" 
             />
@@ -108,16 +108,20 @@
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 <script>
-  const listings = <%- JSON.stringify(allListings) %>;
+  // ✅ SAFE JSON (IMPORTANT)
+  const listings = <%- JSON.stringify(allListings || []) %>;
 
-  const map = L.map('map');
+  const map = L.map('map').setView([28.6139, 77.2090], 5);
 
-  let bounds = [];
+  // TILE FIRST
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
   const markers = L.markerClusterGroup();
+  let bounds = [];
 
   listings.forEach(listing => {
-
     if(listing.geometry && listing.geometry.coordinates){
 
       const coords = listing.geometry.coordinates;
@@ -141,27 +145,22 @@
 
   if(bounds.length > 0){
     map.fitBounds(bounds, { padding: [50, 50] });
-  } else {
-    map.setView([28.6139, 77.2090], 5);
   }
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  // ✅ MAP FIX (VERY IMPORTANT 🔥)
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 500);
 
+  // USER LOCATION
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(position => {
-
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
 
       L.marker([lat, lng])
         .addTo(map)
-        .bindPopup("📍 You are here")
-        .openPopup();
-
-    }, () => {
-      console.log("Location access denied");
+        .bindPopup("📍 You are here");
     });
   }
 </script>
