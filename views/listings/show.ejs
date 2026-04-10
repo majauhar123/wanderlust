@@ -59,10 +59,20 @@
             </div>
           <% }) %>
 
+        <% } else if(listing.image && listing.image.url){ %>
+
+          <!-- fallback single image -->
+          <div class="carousel-item active">
+            <img src="<%= listing.image.url %>" class="d-block w-100 gallery-img">
+          </div>
+
         <% } else { %>
+
+          <!-- fallback default -->
           <div class="carousel-item active">
             <img src="https://via.placeholder.com/800x400" class="d-block w-100 gallery-img">
           </div>
+
         <% } %>
 
       </div>
@@ -108,7 +118,7 @@
 
       <%
         let avg = 0;
-        if(listing.reviews.length > 0){
+        if(listing.reviews && listing.reviews.length > 0){
           let sum = 0;
           listing.reviews.forEach(r => sum += r.rating);
           avg = (sum / listing.reviews.length).toFixed(1);
@@ -145,7 +155,7 @@
 
       <h4>All Reviews</h4>
 
-      <% if(listing.reviews.length > 0){ %>
+      <% if(listing.reviews && listing.reviews.length > 0){ %>
 
         <% listing.reviews.forEach(review => { %>
 
@@ -192,7 +202,9 @@
 
   const map = L.map('map').setView([coordinates[1], coordinates[0]], 10);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
   L.marker([coordinates[1], coordinates[0]])
     .addTo(map)

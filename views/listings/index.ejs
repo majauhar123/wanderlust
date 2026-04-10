@@ -67,9 +67,12 @@
           <div class="card shadow-sm h-100"
                onclick="window.location='/listings/<%= listing._id %>'">
 
-            <img src="<%= listing.image %>" 
-                 class="card-img-top"
-                 style="height:220px; object-fit:cover;" />
+            <!-- ✅ FIXED IMAGE -->
+            <img 
+              src="<%= listing.image?.url || 'https://via.placeholder.com/400' %>" 
+              class="card-img-top"
+              style="height:220px; object-fit:cover;" 
+            />
 
             <div class="card-body">
               <h5 class="fw-bold"><%= listing.title %></h5>
@@ -111,12 +114,10 @@
 
   let bounds = [];
 
-  // ✅ CLUSTER GROUP
   const markers = L.markerClusterGroup();
 
   listings.forEach(listing => {
 
-    // 🔒 SAFE CHECK
     if(listing.geometry && listing.geometry.coordinates){
 
       const coords = listing.geometry.coordinates;
@@ -138,19 +139,16 @@
 
   map.addLayer(markers);
 
-  // ✅ AUTO ZOOM
   if(bounds.length > 0){
     map.fitBounds(bounds, { padding: [50, 50] });
   } else {
-    map.setView([28.6139, 77.2090], 5); // default India
+    map.setView([28.6139, 77.2090], 5);
   }
 
-  // ✅ TILE
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // 📍 USER LOCATION
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(position => {
 
