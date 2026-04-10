@@ -7,17 +7,45 @@
 
   <style>
     body {
-      background: linear-gradient(to right, #141e30, #243b55);
+      background: linear-gradient(135deg, #141e30, #243b55);
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      font-family: "Poppins", sans-serif;
     }
 
     .card {
-      padding: 30px;
-      border-radius: 15px;
+      padding: 35px;
+      border-radius: 20px;
       width: 350px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      color: white;
+    }
+
+    .form-control {
+      border-radius: 10px;
+    }
+
+    .btn-login {
+      border-radius: 10px;
+      background: #ff6b6b;
+      border: none;
+      font-weight: bold;
+    }
+
+    .btn-login:hover {
+      background: #ff4757;
+    }
+
+    a {
+      color: #ffc107;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -25,20 +53,37 @@
 <body>
 
 <div class="card shadow-lg">
-  <h3 class="text-center mb-3">Login 🔐</h3>
+
+  <h3 class="text-center mb-4">🔐 Login</h3>
 
   <form method="POST" action="/login">
 
-    <input name="username" class="form-control mb-3" placeholder="Username" required>
+    <input 
+      name="username" 
+      class="form-control mb-3" 
+      placeholder="Username" 
+      required
+    >
 
-    <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+    <input 
+      type="password" 
+      name="password" 
+      class="form-control mb-3" 
+      placeholder="Password" 
+      required
+    >
 
-    <button class="btn btn-dark w-100">Login</button>
+    <button class="btn btn-login w-100">
+      Login
+    </button>
+
   </form>
 
   <p class="text-center mt-3">
-    No account? <a href="/signup">Signup</a>
+    Don’t have an account? 
+    <a href="/signup">Signup</a>
   </p>
+
 </div>
 
 </body>

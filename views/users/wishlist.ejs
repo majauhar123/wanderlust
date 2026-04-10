@@ -2,16 +2,46 @@
 <html>
 <head>
   <title>Wishlist</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+
+    .card {
+      border-radius: 15px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: scale(1.04);
+    }
+
+    .listing-img {
+      height: 220px;
+      object-fit: cover;
+    }
+
+    .empty-box {
+      text-align: center;
+      padding: 50px;
+      background: white;
+      border-radius: 15px;
+    }
+  </style>
 </head>
 
 <body>
 
 <%- include("../partials/navbar") %>
 
-<div class="container mt-4">
+<div class="container mt-5">
 
-  <h2>❤️ My Wishlist</h2>
+  <h2 class="fw-bold mb-4">❤️ My Wishlist</h2>
 
   <div class="row">
 
@@ -20,13 +50,29 @@
       <% listings.forEach(listing => { %>
 
         <div class="col-md-4 mb-4">
-          <div class="card shadow-sm"
+          <div class="card shadow-sm h-100"
                onclick="window.location='/listings/<%= listing._id %>'">
 
-            <img src="<%= listing.images[0]?.url || '' %>" class="card-img-top">
+            <!-- ✅ IMAGE FIX -->
+            <img 
+              src="<%= 
+                (listing.image && listing.image.url) 
+                || (listing.images && listing.images[0]?.url) 
+                || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e'
+              %>" 
+              class="card-img-top listing-img"
+            >
 
             <div class="card-body">
-              <h5><%= listing.title %></h5>
+              <h5 class="fw-bold"><%= listing.title %></h5>
+
+              <p class="text-muted mb-1">
+                📍 <%= listing.location %>, <%= listing.country %>
+              </p>
+
+              <p class="text-success fw-bold">
+                ₹ <%= listing.price?.toLocaleString("en-IN") %>
+              </p>
             </div>
 
           </div>
@@ -36,7 +82,17 @@
 
     <% } else { %>
 
-      <p>No wishlist items 😔</p>
+      <!-- EMPTY STATE -->
+      <div class="col-12">
+        <div class="empty-box shadow-sm">
+          <h4>😔 No items in wishlist</h4>
+          <p class="text-muted">Start exploring and add your favorite places ❤️</p>
+
+          <a href="/listings" class="btn btn-dark mt-2">
+            Explore Listings
+          </a>
+        </div>
+      </div>
 
     <% } %>
 

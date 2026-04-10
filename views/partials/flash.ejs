@@ -1,13 +1,13 @@
 <% if(success && success.length > 0) { %>
-  <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-    <%= success %>
+  <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+    <strong>✅ Success:</strong> <%= success %>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
 <% } %>
 
 <% if(error && error.length > 0) { %>
-  <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-    <%= error %>
+  <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3" role="alert">
+    <strong>❌ Error:</strong> <%= error %>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
 <% } %>
@@ -17,7 +17,7 @@
   setTimeout(() => {
     document.querySelectorAll(".alert").forEach(el => {
       el.classList.remove("show");
-      el.classList.add("fade");
+      setTimeout(() => el.remove(), 500); // smooth remove
     });
   }, 3000);
 </script>

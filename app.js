@@ -11,46 +11,40 @@ const User = require("./models/user.js");
 const path = require("path");
 const methodOverride = require("method-override");
 
-// ⭐ STATIC (IMPORTANT FOR RENDER)
+// STATIC
 app.use(express.static(path.join(__dirname, "public")));
 
-// ⭐ MULTER
+// MULTER
 const multer = require("multer");
 const { storage } = require("./cloudConfig");
 const upload = multer({ storage });
 
-// ⭐ AUTH
+// AUTH
 const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const flash = require("connect-flash");
 
-// ⭐ AXIOS
+// AXIOS
 const axios = require("axios");
 
-// ================= ENV =================
+// ENV
 const MONGO_URL = process.env.MONGO_URL;
 const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
 
-// ================= DB =================
-async function main() {
-  try {
-    await mongoose.connect(MONGO_URL);
-    console.log("connected to DB ✅");
-  } catch (err) {
-    console.log("DB ERROR ❌", err);
-  }
-}
-main();
+// DB
+mongoose.connect(MONGO_URL)
+  .then(() => console.log("DB Connected ✅"))
+  .catch(err => console.log("DB Error ❌", err));
 
-// ================= VIEW =================
+// VIEW
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
-// ================= SESSION =================
+// SESSION
 app.use(session({
   secret: SECRET,
   resave: false,
@@ -59,7 +53,7 @@ app.use(session({
 
 app.use(flash());
 
-// ================= PASSPORT =================
+// PASSPORT
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -67,7 +61,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// ================= GLOBAL =================
+// GLOBAL
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
@@ -75,7 +69,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ================= MIDDLEWARE =================
+// MIDDLEWARE
 function isLoggedIn(req, res, next) {
   if (!req.isAuthenticated()) {
     req.flash("error", "Login required!");
@@ -87,7 +81,8 @@ function isLoggedIn(req, res, next) {
 async function isOwner(req, res, next) {
   let listing = await Listing.findById(req.params.id);
   if (!listing.owner.equals(req.user._id)) {
-    return res.send("Not owner ❌");
+    req.flash("error", "Not authorized");
+    return res.redirect("/listings");
   }
   next();
 }
@@ -99,10 +94,9 @@ app.get("/", (req, res) => {
   res.redirect("/listings");
 });
 
-// INDEX + SEARCH + FILTER
+// INDEX
 app.get("/listings", async (req, res) => {
   let { search, category } = req.query;
-
   let query = {};
 
   if (search) {
@@ -135,19 +129,21 @@ app.get("/listings/:id", async (req, res) => {
   res.render("listings/show.ejs", { listing });
 });
 
-// CREATE (MAP + IMAGE)
+// CREATE
 app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, res) => {
   try {
     const newListing = new Listing(req.body.listing);
-
     newListing.owner = req.user._id;
 
-    // ⭐ IMAGE
+    // ✅ IMAGE FIX (IMPORTANT 🔥)
     if (req.file) {
-      newListing.image = req.file.path;
+      newListing.image = {
+        url: req.file.path,
+        filename: req.file.filename,
+      };
     }
 
-    // ⭐ MAP (GEOCODING)
+    // MAP
     const location = `${req.body.listing.location}, ${req.body.listing.country}`;
 
     const response = await axios.get(
@@ -162,11 +158,6 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
           parseFloat(response.data[0].lat),
         ],
       };
-    } else {
-      newListing.geometry = {
-        type: "Point",
-        coordinates: [77.2090, 28.6139],
-      };
     }
 
     await newListing.save();
@@ -176,7 +167,8 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
 
   } catch (err) {
     console.log(err);
-    res.send("Error ❌");
+    req.flash("error", "Something went wrong ❌");
+    res.redirect("/listings");
   }
 });
 
@@ -198,7 +190,7 @@ app.delete("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   res.redirect("/listings");
 });
 
-// ================= ❤️ WISHLIST =================
+// ❤️ WISHLIST
 app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id);
   const id = req.params.id;
@@ -213,7 +205,21 @@ app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
   res.redirect(`/listings/${id}`);
 });
 
-// ================= REVIEWS =================
+// GET WISHLIST
+app.get("/wishlist", isLoggedIn, async (req, res) => {
+  const user = await User.findById(req.user._id).populate("wishlist");
+  res.render("users/wishlist", { listings: user.wishlist });
+});
+
+// PROFILE
+app.get("/profile", isLoggedIn, async (req, res) => {
+  const user = await User.findById(req.user._id);
+  const userListings = await Listing.find({ owner: req.user._id });
+
+  res.render("users/profile", { user, userListings });
+});
+
+// REVIEWS
 app.post("/listings/:id/reviews", isLoggedIn, async (req, res) => {
   let listing = await Listing.findById(req.params.id);
 
@@ -228,7 +234,7 @@ app.post("/listings/:id/reviews", isLoggedIn, async (req, res) => {
   res.redirect(`/listings/${req.params.id}`);
 });
 
-// ================= AUTH =================
+// AUTH
 app.get("/signup", (req, res) => {
   res.render("users/signup");
 });
@@ -251,21 +257,24 @@ app.get("/login", (req, res) => {
 app.post("/login",
   passport.authenticate("local", {
     failureRedirect: "/login",
+    failureFlash: true,
   }),
   (req, res) => {
+    req.flash("success", "Welcome back!");
     res.redirect("/listings");
   }
 );
 
 app.get("/logout", (req, res) => {
   req.logout(() => {
+    req.flash("success", "Logged out");
     res.redirect("/listings");
   });
 });
 
-// ================= SERVER =================
+// SERVER
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(`server running on port ${PORT} 🚀`);
+  console.log(`Server running on port ${PORT} 🚀`);
 });

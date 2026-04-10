@@ -7,17 +7,45 @@
 
   <style>
     body {
-      background: linear-gradient(to right, #1d4350, #a43931);
+      background: linear-gradient(135deg, #1d4350, #a43931);
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      font-family: "Poppins", sans-serif;
     }
 
     .card {
-      padding: 30px;
-      border-radius: 15px;
+      padding: 35px;
+      border-radius: 20px;
       width: 350px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      color: white;
+    }
+
+    .form-control {
+      border-radius: 10px;
+    }
+
+    .btn-signup {
+      border-radius: 10px;
+      background: #00cec9;
+      border: none;
+      font-weight: bold;
+    }
+
+    .btn-signup:hover {
+      background: #00b894;
+    }
+
+    a {
+      color: #ffc107;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -25,22 +53,44 @@
 <body>
 
 <div class="card shadow-lg">
-  <h3 class="text-center mb-3">Signup ✨</h3>
+
+  <h3 class="text-center mb-4">✨ Create Account</h3>
 
   <form method="POST" action="/signup">
 
-    <input name="username" class="form-control mb-2" placeholder="Username" required>
+    <input 
+      name="username" 
+      class="form-control mb-3" 
+      placeholder="Username" 
+      required
+    >
 
-    <input name="email" class="form-control mb-2" placeholder="Email" required>
+    <input 
+      name="email" 
+      class="form-control mb-3" 
+      placeholder="Email" 
+      required
+    >
 
-    <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+    <input 
+      type="password" 
+      name="password" 
+      class="form-control mb-3" 
+      placeholder="Password" 
+      required
+    >
 
-    <button class="btn btn-dark w-100">Signup</button>
+    <button class="btn btn-signup w-100">
+      Signup
+    </button>
+
   </form>
 
   <p class="text-center mt-3">
-    Already have account? <a href="/login">Login</a>
+    Already have an account? 
+    <a href="/login">Login</a>
   </p>
+
 </div>
 
 </body>

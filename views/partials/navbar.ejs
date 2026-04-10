@@ -1,9 +1,11 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 shadow-sm">
 
-  <!-- Logo -->
-  <a class="navbar-brand fw-bold" href="/listings">🌍 Wanderlust</a>
+  <!-- LOGO -->
+  <a class="navbar-brand fw-bold fs-4" href="/listings">
+    🌍 Wanderlust
+  </a>
 
-  <!-- Toggle -->
+  <!-- TOGGLE -->
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -11,38 +13,45 @@
   <div class="collapse navbar-collapse" id="navbarNav">
 
     <!-- 🔍 SEARCH -->
-    <form class="d-flex mx-auto" action="/listings" method="GET" style="width: 40%;">
+    <form class="d-flex mx-auto" action="/listings" method="GET" style="max-width: 500px; width: 100%;">
       <input 
-        class="form-control me-2" 
+        class="form-control me-2 rounded-pill" 
         type="search" 
         name="search"
-        placeholder="Search location..."
+        placeholder="Search places..."
       />
-      <button class="btn btn-outline-light">Search</button>
+      <button class="btn btn-outline-light rounded-pill px-3">Search</button>
     </form>
 
     <!-- RIGHT SIDE -->
-    <div class="ms-auto d-flex align-items-center">
+    <div class="ms-auto d-flex align-items-center gap-2">
 
       <% if(!currUser) { %>
 
-        <a href="/login" class="btn btn-outline-light me-2">Login</a>
-        <a href="/signup" class="btn btn-warning">Signup</a>
+        <a href="/login" class="btn btn-outline-light rounded-pill px-3">
+          Login
+        </a>
+
+        <a href="/signup" class="btn btn-warning rounded-pill px-3 fw-bold">
+          Signup
+        </a>
 
       <% } else { %>
 
         <!-- ❤️ WISHLIST -->
-        <a href="/wishlist" class="btn btn-outline-danger me-2">
+        <a href="/wishlist" class="btn btn-outline-danger rounded-pill px-3">
           ❤️ Wishlist
         </a>
 
         <!-- 👤 PROFILE -->
-        <a href="/profile" class="btn btn-outline-info me-2">
+        <a href="/profile" class="btn btn-outline-info rounded-pill px-3">
           👤 <%= currUser.username %>
         </a>
 
         <!-- LOGOUT -->
-        <a href="/logout" class="btn btn-danger">Logout</a>
+        <a href="/logout" class="btn btn-danger rounded-pill px-3">
+          Logout
+        </a>
 
       <% } %>
 
