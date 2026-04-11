@@ -14,10 +14,11 @@
 
     body {
       margin: 0;
-      font-family: sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: #f8f9fa;
     }
 
+    /* HERO */
     .hero {
       height: 100vh;
       background: url("https://images.unsplash.com/photo-1501785888041-af3ef285b470") center/cover no-repeat;
@@ -35,19 +36,24 @@
       background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8));
     }
 
+    /* PREMIUM NAVBAR */
     .hero-navbar {
       position: fixed;
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
       width: 90%;
+
       display: flex;
       justify-content: space-between;
       align-items: center;
+
       padding: 12px 30px;
       border-radius: 50px;
+
       background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
+
       z-index: 1000;
     }
 
@@ -55,6 +61,12 @@
       color: white;
       text-decoration: none;
       margin: 0 12px;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .hero-navbar a:hover {
+      color: orange;
     }
 
     .left {
@@ -68,16 +80,34 @@
       padding: 6px 15px;
       border-radius: 20px;
       color: white;
+      font-weight: bold;
     }
 
+    /* HERO CONTENT */
     .hero-content {
       text-align: center;
       color: white;
       z-index: 2;
     }
 
+    .hero-content h1 {
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    .explore-btn {
+      background: orange;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 20px;
+      margin-top: 20px;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* SEARCH */
     .search-box {
-      margin-top: 40px;
+      margin-top: 30px;
       background: white;
       border-radius: 50px;
       padding: 10px;
@@ -85,8 +115,16 @@
       gap: 10px;
       width: 80%;
       max-width: 650px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
 
+    .search-box input {
+      border: none;
+      outline: none;
+      flex: 1;
+    }
+
+    /* SECTIONS */
     section {
       padding: 80px 0;
       opacity: 0;
@@ -94,9 +132,16 @@
       transition: 0.6s;
     }
 
+    /* CARD */
+    .card {
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
     .card:hover {
       transform: translateY(-10px);
       transition: 0.3s;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -105,6 +150,7 @@
 
 <!-- NAVBAR -->
 <div class="hero-navbar">
+
   <div class="left">🌍 Wanderlust</div>
 
   <div>
@@ -118,27 +164,28 @@
     <a href="/login">Sign in</a>
     <a href="/signup" class="signup-btn">Sign up</a>
   </div>
+
 </div>
 
 <!-- HERO -->
 <div class="hero">
   <div class="hero-content">
 
-    <h1>Explore World 🌍</h1>
+    <h1>Let’s Explore the World 🌍</h1>
 
-    <button class="btn btn-warning mt-3" onclick="location.href='/listings'">
+    <button class="explore-btn" onclick="location.href='/listings'">
       Explore Now
     </button>
 
     <form action="/listings" method="GET" class="search-box">
       <input type="text" name="search" placeholder="Search destination..." />
-      <button class="btn btn-dark">Search</button>
+      <button class="btn btn-dark rounded-pill px-3">Search</button>
     </form>
 
   </div>
 </div>
 
-<!-- 🔥 DYNAMIC LISTINGS -->
+<!-- LISTINGS -->
 <section id="destination" class="container text-center">
   <h2 class="fw-bold mb-5">Explore Listings ✈️</h2>
 
@@ -153,13 +200,13 @@
                onclick="window.location='/listings/<%= listing._id %>'">
 
             <img 
-              src="<%= (listing.image && listing.image.url) || listing.image %>" 
+              src="<%= (listing.image && listing.image.url) || listing.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e' %>" 
               style="height:200px; object-fit:cover;"
             >
 
             <div class="card-body">
-              <h5><%= listing.title %></h5>
-              <p>₹ <%= listing.price %></p>
+              <h5 class="fw-bold"><%= listing.title %></h5>
+              <p class="text-success fw-bold">₹ <%= listing.price %></p>
               <p class="text-muted"><%= listing.location %></p>
             </div>
 
@@ -199,13 +246,14 @@
   </div>
 </section>
 
-<!-- ANIMATION -->
+<!-- SCROLL ANIMATION -->
 <script>
   const sections = document.querySelectorAll("section");
 
   window.addEventListener("scroll", () => {
     sections.forEach(sec => {
-      const offset = sec.offsetTop - 300;
+      const offset = sec.offsetTop - 200;
+
       if(window.scrollY > offset){
         sec.style.opacity = "1";
         sec.style.transform = "translateY(0)";

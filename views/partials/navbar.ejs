@@ -1,68 +1,69 @@
-<nav class="navbar navbar-expand-lg navbar-dark custom-navbar fixed-top">
+<nav class="navbar navbar-expand-lg fixed-top premium-navbar">
 
   <div class="container">
 
-    <!-- 🌍 LOGO -->
-    <a class="navbar-brand fw-bold fs-4" href="/listings">
+    <!-- LOGO -->
+    <a class="navbar-brand fw-bold fs-4 text-white" href="/">
       🌍 Wanderlust
     </a>
 
     <!-- TOGGLE -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
+    <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      ☰
     </button>
 
     <!-- MENU -->
-    <div class="collapse navbar-collapse mobile-menu" id="navbarNav">
+    <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
 
-      <!-- 🔍 SEARCH -->
-      <form class="d-flex flex-column flex-lg-row mx-auto my-3 search-box" action="/listings" method="GET">
-        <input 
-          class="form-control mb-2 mb-lg-0 me-lg-2 rounded-pill shadow-sm" 
-          type="search" 
-          name="search"
-          placeholder="Search places..."
-        />
-        <button class="btn btn-light rounded-pill px-3 fw-bold">Search</button>
-      </form>
+      <!-- CENTER LINKS -->
+      <ul class="navbar-nav mx-auto text-center">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#destination">Destination</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#features">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#pricing">Pricing</a>
+        </li>
+      </ul>
 
       <!-- RIGHT SIDE -->
-      <div class="ms-auto d-flex flex-column flex-lg-row align-items-center gap-3 mt-3 mt-lg-0">
+      <div class="d-flex gap-2 justify-content-center mt-3 mt-lg-0">
 
         <% if(!currUser) { %>
 
-          <a href="/listings" class="btn btn-outline-light w-75">Home</a>
-          <a href="/login" class="btn btn-outline-light w-75">Login</a>
-          <a href="/signup" class="btn btn-warning w-75 fw-bold">Signup</a>
+          <a href="/login" class="btn btn-outline-light rounded-pill px-3">
+            Login
+          </a>
+
+          <a href="/signup" class="btn btn-warning rounded-pill px-3 fw-bold">
+            Signup
+          </a>
 
         <% } else { %>
 
-          <a href="/listings" class="btn btn-outline-light w-75">Home</a>
+          <a href="/listings" class="btn btn-outline-light rounded-pill px-3">
+            Listings
+          </a>
 
-          <a href="/listings/new" class="btn btn-success w-75 fw-bold">+ Add</a>
-
-          <a href="/wishlist" class="btn btn-outline-danger w-75">
+          <a href="/wishlist" class="btn btn-outline-danger rounded-pill px-3">
             ❤️ Wishlist
           </a>
 
-          <!-- 🔔 -->
-          <button class="btn btn-outline-light w-75">
-            🔔 Notifications
-          </button>
+          <div class="dropdown">
+            <button class="btn btn-info rounded-pill dropdown-toggle px-3" data-bs-toggle="dropdown">
+              👤 <%= currUser.username %>
+            </button>
 
-          <!-- 🌙 -->
-          <button id="darkToggle" class="btn btn-outline-light w-75">
-            🌙 Dark Mode
-          </button>
-
-          <!-- PROFILE -->
-          <a href="/profile" class="btn btn-outline-info w-75">
-            👤 <%= currUser.username %>
-          </a>
-
-          <a href="/logout" class="btn btn-danger w-75">
-            Logout
-          </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/profile">Profile</a></li>
+              <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+            </ul>
+          </div>
 
         <% } %>
 
@@ -75,28 +76,4 @@
 </nav>
 
 <!-- SPACING -->
-<div style="height: 90px;"></div>
-
-<!-- BOOTSTRAP -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- DARK MODE -->
-<script>
-  const toggle = document.getElementById("darkToggle");
-
-  if(toggle){
-    toggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-
-      if(document.body.classList.contains("dark-mode")){
-        localStorage.setItem("mode", "dark");
-      } else {
-        localStorage.setItem("mode", "light");
-      }
-    });
-  }
-
-  if(localStorage.getItem("mode") === "dark"){
-    document.body.classList.add("dark-mode");
-  }
-</script>
+<div style="height: 80px;"></div>
