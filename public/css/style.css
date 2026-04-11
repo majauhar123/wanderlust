@@ -5,11 +5,33 @@
   transition: 0.3s;
 }
 
-.custom-navbar .btn:hover {
-  transform: scale(1.05);
+.custom-navbar {
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .search-box {
   max-width: 500px;
   width: 100%;
+}
+
+.custom-navbar .btn:hover {
+  transform: scale(1.05);
+  transition: 0.3s;
+}
+
+/* 🌙 DARK MODE */
+.dark-mode {
+  background: #121212 !important;
+  color: white !important;
+}
+
+.dark-mode .card {
+  background: #1e1e1e;
+  color: white;
+}
+
+.dark-mode .navbar {
+  background: #000 !important;
 }
