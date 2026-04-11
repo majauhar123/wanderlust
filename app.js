@@ -14,7 +14,7 @@ const methodOverride = require("method-override");
 // STATIC
 app.use(express.static(path.join(__dirname, "public")));
 
-// MULTER
+// MULTER + CLOUDINARY
 const multer = require("multer");
 const { storage } = require("./cloudConfig");
 const upload = multer({ storage });
@@ -69,7 +69,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// MIDDLEWARE
+// ================= MIDDLEWARE =================
+
 function isLoggedIn(req, res, next) {
   if (!req.isAuthenticated()) {
     req.flash("error", "Login required!");
@@ -89,9 +90,10 @@ async function isOwner(req, res, next) {
 
 // ================= ROUTES =================
 
-// ROOT
-app.get("/", (req, res) => {
-  res.redirect("/listings");
+// 🔥 FIXED HOMEPAGE (IMPORTANT)
+app.get("/", async (req, res) => {
+  const listings = await Listing.find({});
+  res.render("home.ejs", { listings });
 });
 
 // INDEX
@@ -135,7 +137,7 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
 
-    // ✅ IMAGE FIX (IMPORTANT 🔥)
+    // IMAGE FIX
     if (req.file) {
       newListing.image = {
         url: req.file.path,
@@ -143,7 +145,7 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
       };
     }
 
-    // MAP
+    // MAP FIX
     const location = `${req.body.listing.location}, ${req.body.listing.country}`;
 
     const response = await axios.get(
@@ -190,10 +192,12 @@ app.delete("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   res.redirect("/listings");
 });
 
-// ❤️ WISHLIST
-app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
+// ❤️ WISHLIST (FIXED)
+app.post("/wishlist/:id", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id);
   const id = req.params.id;
+
+  if (!user.wishlist) user.wishlist = [];
 
   if (user.wishlist.includes(id)) {
     user.wishlist.pull(id);
@@ -208,7 +212,7 @@ app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
 // GET WISHLIST
 app.get("/wishlist", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id).populate("wishlist");
-  res.render("users/wishlist", { listings: user.wishlist });
+  res.render("users/wishlist.ejs", { listings: user.wishlist });
 });
 
 // PROFILE
@@ -216,7 +220,7 @@ app.get("/profile", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id);
   const userListings = await Listing.find({ owner: req.user._id });
 
-  res.render("users/profile", { user, userListings });
+  res.render("users/profile.ejs", { user, userListings });
 });
 
 // REVIEWS
@@ -236,7 +240,7 @@ app.post("/listings/:id/reviews", isLoggedIn, async (req, res) => {
 
 // AUTH
 app.get("/signup", (req, res) => {
-  res.render("users/signup");
+  res.render("users/signup.ejs");
 });
 
 app.post("/signup", async (req, res) => {
@@ -246,12 +250,12 @@ app.post("/signup", async (req, res) => {
   const registeredUser = await User.register(newUser, password);
 
   req.login(registeredUser, () => {
-    res.redirect("/listings");
+    res.redirect("/");
   });
 });
 
 app.get("/login", (req, res) => {
-  res.render("users/login");
+  res.render("users/login.ejs");
 });
 
 app.post("/login",
@@ -261,14 +265,14 @@ app.post("/login",
   }),
   (req, res) => {
     req.flash("success", "Welcome back!");
-    res.redirect("/listings");
+    res.redirect("/");
   }
 );
 
 app.get("/logout", (req, res) => {
   req.logout(() => {
     req.flash("success", "Logged out");
-    res.redirect("/listings");
+    res.redirect("/");
   });
 });
 

@@ -11,11 +11,11 @@ const userSchema = new Schema({
   },
 
   wishlist: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Listing",
-    },
-  ],
+  {
+    type: Schema.Types.ObjectId,
+    ref: "Listing"
+  }
+]
 });
 
 // ✅ FIXED PLUGIN

@@ -4,7 +4,7 @@
   <title>Wishlist</title>
 
   <link rel="stylesheet" href="/css/style.css">
-  
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
@@ -56,14 +56,10 @@
                onclick="window.location='/listings/<%= listing._id %>'">
 
             <!-- ✅ IMAGE FIX -->
-            <img 
-              src="<%= 
-                (listing.image && listing.image.url) 
-                || (listing.images && listing.images[0]?.url) 
-                || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e'
-              %>" 
-              class="card-img-top listing-img"
-            >
+<img 
+  src="<%= (listing.image && listing.image.url) || listing.image %>" 
+  class="card-img-top"
+/>
 
             <div class="card-body">
               <h5 class="fw-bold"><%= listing.title %></h5>
