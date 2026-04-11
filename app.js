@@ -32,7 +32,7 @@ const axios = require("axios");
 const MONGO_URL = process.env.MONGO_URL;
 const SECRET = process.env.SESSION_SECRET || "fallbacksecret";
 
-// DB
+// DB CONNECT
 mongoose.connect(MONGO_URL)
   .then(() => console.log("DB Connected ✅"))
   .catch(err => console.log("DB Error ❌", err));
@@ -61,7 +61,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// GLOBAL
+// GLOBAL VARIABLES
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
@@ -90,10 +90,15 @@ async function isOwner(req, res, next) {
 
 // ================= ROUTES =================
 
-// 🔥 FIXED HOMEPAGE (IMPORTANT)
+// ✅ 🔥 FIXED HOMEPAGE
 app.get("/", async (req, res) => {
-  const listings = await Listing.find({});
-  res.render("home.ejs", { listings });
+  try {
+    const listings = await Listing.find({});
+    res.render("home", { listings }); // ❗ FIXED
+  } catch (err) {
+    console.log(err);
+    res.send("Error loading homepage");
+  }
 });
 
 // INDEX
@@ -114,12 +119,12 @@ app.get("/listings", async (req, res) => {
   }
 
   const allListings = await Listing.find(query);
-  res.render("listings/index.ejs", { allListings });
+  res.render("listings/index", { allListings });
 });
 
 // NEW
 app.get("/listings/new", isLoggedIn, (req, res) => {
-  res.render("listings/new.ejs");
+  res.render("listings/new");
 });
 
 // SHOW
@@ -128,7 +133,7 @@ app.get("/listings/:id", async (req, res) => {
     .populate("reviews")
     .populate("owner");
 
-  res.render("listings/show.ejs", { listing });
+  res.render("listings/show", { listing });
 });
 
 // CREATE
@@ -137,7 +142,6 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
 
-    // IMAGE FIX
     if (req.file) {
       newListing.image = {
         url: req.file.path,
@@ -145,7 +149,7 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
       };
     }
 
-    // MAP FIX
+    // MAP
     const location = `${req.body.listing.location}, ${req.body.listing.country}`;
 
     const response = await axios.get(
@@ -177,7 +181,7 @@ app.post("/listings", isLoggedIn, upload.single("listing[image]"), async (req, r
 // EDIT
 app.get("/listings/:id/edit", isLoggedIn, isOwner, async (req, res) => {
   let listing = await Listing.findById(req.params.id);
-  res.render("listings/edit.ejs", { listing });
+  res.render("listings/edit", { listing });
 });
 
 // UPDATE
@@ -192,7 +196,7 @@ app.delete("/listings/:id", isLoggedIn, isOwner, async (req, res) => {
   res.redirect("/listings");
 });
 
-// ❤️ WISHLIST (FIXED)
+// ❤️ WISHLIST
 app.post("/wishlist/:id", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id);
   const id = req.params.id;
@@ -212,7 +216,7 @@ app.post("/wishlist/:id", isLoggedIn, async (req, res) => {
 // GET WISHLIST
 app.get("/wishlist", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id).populate("wishlist");
-  res.render("users/wishlist.ejs", { listings: user.wishlist });
+  res.render("users/wishlist", { listings: user.wishlist });
 });
 
 // PROFILE
@@ -220,7 +224,7 @@ app.get("/profile", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id);
   const userListings = await Listing.find({ owner: req.user._id });
 
-  res.render("users/profile.ejs", { user, userListings });
+  res.render("users/profile", { user, userListings });
 });
 
 // REVIEWS
@@ -240,7 +244,7 @@ app.post("/listings/:id/reviews", isLoggedIn, async (req, res) => {
 
 // AUTH
 app.get("/signup", (req, res) => {
-  res.render("users/signup.ejs");
+  res.render("users/signup");
 });
 
 app.post("/signup", async (req, res) => {
@@ -255,7 +259,7 @@ app.post("/signup", async (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  res.render("users/login.ejs");
+  res.render("users/login");
 });
 
 app.post("/login",
