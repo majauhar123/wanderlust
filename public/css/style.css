@@ -1,0 +1,15 @@
+.custom-navbar {
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  transition: 0.3s;
+}
+
+.custom-navbar .btn:hover {
+  transform: scale(1.05);
+}
+
+.search-box {
+  max-width: 500px;
+  width: 100%;
+}
