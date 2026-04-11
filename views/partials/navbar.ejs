@@ -13,12 +13,12 @@
     </button>
 
     <!-- MENU -->
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="collapse navbar-collapse mobile-menu" id="navbarNav">
 
       <!-- 🔍 SEARCH -->
-      <form class="d-flex mx-auto my-2 my-lg-0 search-box" action="/listings" method="GET">
+      <form class="d-flex flex-column flex-lg-row mx-auto my-3 search-box" action="/listings" method="GET">
         <input 
-          class="form-control me-2 rounded-pill shadow-sm" 
+          class="form-control mb-2 mb-lg-0 me-lg-2 rounded-pill shadow-sm" 
           type="search" 
           name="search"
           placeholder="Search places..."
@@ -27,66 +27,42 @@
       </form>
 
       <!-- RIGHT SIDE -->
-      <div class="ms-auto d-flex align-items-center gap-2 mt-3 mt-lg-0">
+      <div class="ms-auto d-flex flex-column flex-lg-row align-items-center gap-3 mt-3 mt-lg-0">
 
         <% if(!currUser) { %>
 
-          <a href="/listings" class="btn btn-outline-light rounded-pill px-3">Home</a>
-
-          <a href="/login" class="btn btn-outline-light rounded-pill px-3">Login</a>
-
-          <a href="/signup" class="btn btn-warning rounded-pill px-3 fw-bold">Signup</a>
+          <a href="/listings" class="btn btn-outline-light w-75">Home</a>
+          <a href="/login" class="btn btn-outline-light w-75">Login</a>
+          <a href="/signup" class="btn btn-warning w-75 fw-bold">Signup</a>
 
         <% } else { %>
 
-          <!-- HOME -->
-          <a href="/listings" class="btn btn-outline-light rounded-pill px-3">Home</a>
+          <a href="/listings" class="btn btn-outline-light w-75">Home</a>
 
-          <!-- ADD -->
-          <a href="/listings/new" class="btn btn-success rounded-pill px-3 fw-bold">+ Add</a>
+          <a href="/listings/new" class="btn btn-success w-75 fw-bold">+ Add</a>
 
-          <!-- ❤️ WISHLIST -->
-          <a href="/wishlist" class="btn btn-outline-danger rounded-pill px-3">
+          <a href="/wishlist" class="btn btn-outline-danger w-75">
             ❤️ Wishlist
           </a>
 
-          <!-- 🔔 NOTIFICATION -->
-          <button class="btn btn-outline-light rounded-pill position-relative">
-            🔔
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-              3
-            </span>
+          <!-- 🔔 -->
+          <button class="btn btn-outline-light w-75">
+            🔔 Notifications
           </button>
 
-          <!-- 🌙 DARK MODE -->
-          <button id="darkToggle" class="btn btn-outline-light rounded-pill">
-            🌙
+          <!-- 🌙 -->
+          <button id="darkToggle" class="btn btn-outline-light w-75">
+            🌙 Dark Mode
           </button>
 
-          <!-- 👤 DROPDOWN -->
-          <div class="dropdown">
-            <button class="btn btn-outline-info rounded-pill dropdown-toggle px-3" data-bs-toggle="dropdown">
-              👤 <%= currUser.username %>
-            </button>
+          <!-- PROFILE -->
+          <a href="/profile" class="btn btn-outline-info w-75">
+            👤 <%= currUser.username %>
+          </a>
 
-            <ul class="dropdown-menu dropdown-menu-end shadow">
-
-              <li>
-                <a class="dropdown-item" href="/profile">👤 Profile</a>
-              </li>
-
-              <li>
-                <a class="dropdown-item" href="/wishlist">❤️ Wishlist</a>
-              </li>
-
-              <li><hr class="dropdown-divider"></li>
-
-              <li>
-                <a class="dropdown-item text-danger" href="/logout">🚪 Logout</a>
-              </li>
-
-            </ul>
-          </div>
+          <a href="/logout" class="btn btn-danger w-75">
+            Logout
+          </a>
 
         <% } %>
 
@@ -101,10 +77,10 @@
 <!-- SPACING -->
 <div style="height: 90px;"></div>
 
-<!-- BOOTSTRAP JS -->
+<!-- BOOTSTRAP -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- 🌙 DARK MODE SCRIPT -->
+<!-- DARK MODE -->
 <script>
   const toggle = document.getElementById("darkToggle");
 
@@ -120,7 +96,6 @@
     });
   }
 
-  // load saved mode
   if(localStorage.getItem("mode") === "dark"){
     document.body.classList.add("dark-mode");
   }
