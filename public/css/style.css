@@ -15,20 +15,21 @@ body {
   transition: all 0.3s ease;
 }
 
+/* SCROLL EFFECT */
 .custom-navbar.scrolled {
   background: rgba(0, 0, 0, 0.9);
 }
 
 /* NAV LINKS */
 .custom-navbar .nav-link {
-  color: white;
+  color: white !important;
   font-weight: 500;
   margin: 0 10px;
   transition: 0.3s;
 }
 
 .custom-navbar .nav-link:hover {
-  color: orange;
+  color: orange !important;
 }
 
 /* BUTTON HOVER */
@@ -40,4 +41,136 @@ body {
   transform: scale(1.08);
 }
 
-/* ================= HERO
+/* FIX NAVBAR POSITION */
+.navbar {
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+  z-index: 9999;
+}
+
+/* BODY SPACING (IMPORTANT) */
+body {
+  padding-top: 80px;
+}
+
+/* ================= HERO ================= */
+
+.hero {
+  height: 100vh;
+  background: url("https://images.unsplash.com/photo-1501785888041-af3ef285b470") center/cover no-repeat;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* DARK OVERLAY FIX */
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+}
+
+/* HERO TEXT */
+.hero-content {
+  text-align: center;
+  color: white;
+  z-index: 2;
+}
+
+.hero-content h1 {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+/* BUTTON */
+.explore-btn {
+  background: orange;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 20px;
+  margin-top: 20px;
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.explore-btn:hover {
+  background: #ff8800;
+  transform: scale(1.05);
+}
+
+/* ================= SEARCH ================= */
+
+.search-box {
+  margin-top: 30px;
+  background: white;
+  border-radius: 50px;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  width: 80%;
+  max-width: 650px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  flex: 1;
+  padding-left: 10px;
+}
+
+/* ================= CARD ================= */
+
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  cursor: pointer;
+}
+
+/* ================= SECTIONS ================= */
+
+section {
+  padding: 80px 0;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: 0.6s;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 992px) {
+
+  .navbar-nav {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .hero-content h1 {
+    font-size: 32px;
+  }
+
+  .search-box {
+    width: 90%;
+    flex-direction: column;
+    border-radius: 20px;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .search-box button {
+    width: 100%;
+  }
+
+}
