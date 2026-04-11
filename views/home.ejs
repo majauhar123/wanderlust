@@ -55,6 +55,12 @@
       margin-top: 20px;
       color: white;
       font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .explore-btn:hover {
+      background: #ff8800;
+      transform: scale(1.05);
     }
 
     /* SEARCH */
@@ -74,6 +80,7 @@
       border: none;
       outline: none;
       flex: 1;
+      padding-left: 10px;
     }
 
     /* SECTIONS */
@@ -88,11 +95,11 @@
     .card {
       border-radius: 15px;
       overflow: hidden;
+      transition: 0.3s;
     }
 
     .card:hover {
       transform: translateY(-10px);
-      transition: 0.3s;
       cursor: pointer;
     }
   </style>
@@ -100,8 +107,8 @@
 
 <body>
 
-<!-- ✅ GLOBAL NAVBAR -->
-<%- include("../partials/navbar") %>
+<!-- ✅ GLOBAL NAVBAR (FIXED PATH) -->
+<%- include("partials/navbar") %>
 
 <!-- HERO -->
 <div class="hero">
